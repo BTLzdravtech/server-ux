@@ -190,7 +190,7 @@ msgstr ""
 #: model:ir.model.fields,help:date_range.field_date_range_type__name_expr
 msgid ""
 "Evaluated expression. E.g. \"'FY%s' % date_start.strftime('%Y%m%d')\"\n"
-"You can use the Date types 'date_end' and 'date_start', as well as the 'index' variable."
+"You can use the Date types 'date_end' and 'date_start', as well as the 'index' variable, and also babel.dates.format_date method."
 msgstr ""
 
 #. module: date_range
@@ -226,6 +226,18 @@ msgstr ""
 #: code:addons/date_range/wizard/date_range_generator.py:0
 #, python-format
 msgid "Invalid name expression: %s"
+msgstr ""
+
+#. module: date_range
+#: model:ir.model.fields,field_description:date_range.field_date_range__archive_uid
+#: model:ir.model.fields,field_description:date_range.field_date_range_type__archive_uid
+msgid "Last Archived by"
+msgstr ""
+
+#. module: date_range
+#: model:ir.model.fields,field_description:date_range.field_date_range__archive_date
+#: model:ir.model.fields,field_description:date_range.field_date_range_type__archive_date
+msgid "Last Archived on"
 msgstr ""
 
 #. module: date_range
