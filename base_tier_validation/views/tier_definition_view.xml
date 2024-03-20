@@ -28,7 +28,7 @@
                     <div class="oe_button_box" name="button_box" />
                     <widget
                         name="web_ribbon"
-                        text="Archived"
+                        title="Archived"
                         bg_color="bg-danger"
                         attrs="{'invisible': [('active', '=', True)]}"
                     />
@@ -71,6 +71,16 @@
                             />
                             <field name="sequence" />
                             <field name="approve_sequence" />
+                            <label for="approve_sequence_bypass" invisible="1" />
+                            <div
+                                name="approve_sequence_bypass_div"
+                                class="o_row"
+                                attrs="{'invisible': [('approve_sequence', '=', False)]}"
+                            >
+                                <field name="approve_sequence_bypass" />
+                                <span
+                                >Bypassed, if previous tier was validated by same reviewer</span>
+                            </div>
                         </group>
                     </group>
                     <notebook>
@@ -89,6 +99,9 @@
                             <group name="more_option">
                                 <group name="notify">
                                     <field name="notify_on_create" />
+                                    <field name="notify_on_accepted" />
+                                    <field name="notify_on_rejected" />
+                                    <field name="notify_on_restarted" />
                                     <field name="has_comment" />
                                 </group>
                             </group>

@@ -32,15 +32,28 @@ class TierValidation(models.AbstractModel):
         auto_join=True,
     )
     to_validate_message = fields.Html(compute="_compute_validated_rejected")
+    # TODO: Delete in v17 in favor of validation_status field
     validated = fields.Boolean(
         compute="_compute_validated_rejected", search="_search_validated"
     )
     validated_message = fields.Html(compute="_compute_validated_rejected")
     need_validation = fields.Boolean(compute="_compute_need_validation")
+    # TODO: Delete in v17 in favor of validation_status field
     rejected = fields.Boolean(
         compute="_compute_validated_rejected", search="_search_rejected"
     )
     rejected_message = fields.Html(compute="_compute_validated_rejected")
+    # Informative field (used in purchase_tier_validation), will be reliable as of v17
+    validation_status = fields.Selection(
+        selection=[
+            ("no", "Without validation"),
+            ("pending", "Pending"),
+            ("rejected", "Rejected"),
+            ("validated", "Validated"),
+        ],
+        default="no",
+        compute="_compute_validation_status",
+    )
     reviewer_ids = fields.Many2many(
         string="Reviewers",
         comodel_name="res.users",
@@ -82,18 +95,15 @@ class TierValidation(models.AbstractModel):
 
     @api.model
     def _search_can_review(self, operator, value):
-        res_ids = (
-            self.search(
-                [
-                    ("review_ids.reviewer_ids", "=", self.env.user.id),
-                    ("review_ids.status", "=", "pending"),
-                    ("review_ids.can_review", "=", True),
-                    ("rejected", "=", False),
-                ]
-            )
-            .filtered("can_review")
-            .ids
-        )
+        domain = [
+            ("review_ids.reviewer_ids", "=", self.env.user.id),
+            ("review_ids.status", "=", "pending"),
+            ("review_ids.can_review", "=", True),
+            ("rejected", "=", False),
+        ]
+        if "active" in self._fields:
+            domain.append(("active", "in", [True, False]))
+        res_ids = self.search(domain).filtered("can_review").ids
         return [("id", "in", res_ids)]
 
     @api.depends("review_ids")
@@ -107,18 +117,18 @@ class TierValidation(models.AbstractModel):
     def _search_validated(self, operator, value):
         assert operator in ("=", "!="), "Invalid domain operator"
         assert value in (True, False), "Invalid domain value"
-        pos = self.search([(self._state_field, "in", self._state_from)]).filtered(
-            lambda r: r.review_ids and r.validated == value
-        )
+        pos = self.search(
+            [(self._state_field, "in", self._state_from), ("review_ids", "!=", False)]
+        ).filtered(lambda r: r.validated == value)
         return [("id", "in", pos.ids)]
 
     @api.model
     def _search_rejected(self, operator, value):
         assert operator in ("=", "!="), "Invalid domain operator"
         assert value in (True, False), "Invalid domain value"
-        pos = self.search([(self._state_field, "in", self._state_from)]).filtered(
-            lambda r: r.review_ids and r.rejected == value
-        )
+        pos = self.search(
+            [(self._state_field, "in", self._state_from), ("review_ids", "!=", False)]
+        ).filtered(lambda r: r.rejected == value)
         return [("id", "in", pos.ids)]
 
     @api.model
@@ -169,6 +179,21 @@ class TierValidation(models.AbstractModel):
             rec.rejected_message = rec._get_rejected_message()
             rec.to_validate_message = rec._get_to_validate_message()
 
+    def _compute_validation_status(self):
+        for item in self:
+            if item.validated and not item.rejected:
+                item.validation_status = "validated"
+            elif not item.validated and item.rejected:
+                item.validation_status = "rejected"
+            elif (
+                not item.validated
+                and not item.rejected
+                and any(item.review_ids.filtered(lambda x: x.status == "pending"))
+            ):
+                item.validation_status = "pending"
+            else:
+                item.validation_status = "no"
+
     def _compute_next_review(self):
         for rec in self:
             review = rec.review_ids.sorted("sequence").filtered(
@@ -193,12 +218,15 @@ class TierValidation(models.AbstractModel):
             if isinstance(rec.id, models.NewId):
                 rec.need_validation = False
                 continue
-            tiers = self.env["tier.definition"].search([("model", "=", self._name)])
+            tiers = self.env["tier.definition"].search(
+                [
+                    ("model", "=", self._name),
+                    ("company_id", "in", [False] + self.env.company.ids),
+                ]
+            )
             valid_tiers = any([rec.evaluate_tier(tier) for tier in tiers])
             rec.need_validation = (
-                not rec.review_ids
-                and valid_tiers
-                and getattr(rec, self._state_field) in self._state_from
+                not rec.review_ids and valid_tiers and rec._check_state_from_condition()
             )
 
     def evaluate_tier(self, tier):
@@ -249,16 +277,38 @@ class TierValidation(models.AbstractModel):
                 and not vals.get(self._state_field)
                 in (self._state_to + [self._cancel_state])
                 and not rec._check_allow_write_under_validation(vals)
+                and not rec._context.get("skip_validation_check")
             ):
                 raise ValidationError(_("The operation is under validation."))
-        if vals.get(self._state_field) in self._state_from:
-            self.mapped("review_ids").unlink()
+            if rec._allow_to_remove_reviews(vals):
+                rec.mapped("review_ids").unlink()
         return super(TierValidation, self).write(vals)
+
+    def _allow_to_remove_reviews(self, values):
+        """Method for deciding whether the elimination of revisions is necessary."""
+        self.ensure_one()
+        state_to = values.get(self._state_field)
+        if not state_to:
+            return False
+        state_from = self[self._state_field]
+        # If you change to _cancel_state
+        if state_to in (self._cancel_state):
+            return True
+        # If it is changed to _state_from and it was not in _state_from
+        if state_to in self._state_from and state_from not in self._state_from:
+            return True
+        return False
+
+    def _check_state_from_condition(self):
+        return self.env.context.get("skip_check_state_condition") or (
+            self._state_field in self._fields
+            and getattr(self, self._state_field) in self._state_from
+        )
 
     def _check_state_conditions(self, vals):
         self.ensure_one()
         return (
-            getattr(self, self._state_field) in self._state_from
+            self._check_state_from_condition()
             and vals.get(self._state_field) in self._state_to
         )
 
@@ -275,9 +325,20 @@ class TierValidation(models.AbstractModel):
                 "reviewed_date": fields.Datetime.now(),
             }
         )
-        for review in user_reviews:
-            rec = self.env[review.model].browse(review.res_id)
-            rec._notify_accepted_reviews()
+        reviews_to_nofity = user_reviews.filtered(
+            lambda r: r.definition_id.notify_on_accepted
+        )
+        if reviews_to_nofity:
+            subscribe = "message_subscribe"
+            if hasattr(self, subscribe):
+                getattr(self, subscribe)(
+                    partner_ids=reviews_to_nofity.mapped("reviewer_ids")
+                    .mapped("partner_id")
+                    .ids
+                )
+            for review in reviews_to_nofity:
+                rec = self.env[review.model].browse(review.res_id)
+                rec._notify_accepted_reviews()
 
     def _get_requested_notification_subtype(self):
         return "base_tier_validation.mt_tier_validation_requested"
@@ -330,9 +391,14 @@ class TierValidation(models.AbstractModel):
     def validate_tier(self):
         self.ensure_one()
         sequences = self._get_sequences_to_approve(self.env.user)
-        reviews = self.review_ids.filtered(lambda l: l.sequence in sequences)
+        reviews = self.review_ids.filtered(
+            lambda l: l.sequence in sequences or l.approve_sequence_bypass
+        )
         if self.has_comment:
-            return self._add_comment("validate", reviews)
+            user_reviews = reviews.filtered(
+                lambda r: r.status == "pending" and (self.env.user in r.reviewer_ids)
+            )
+            return self._add_comment("validate", user_reviews)
         self._validate_tier(reviews)
         self._update_counter({"review_deleted": True})
 
@@ -379,9 +445,21 @@ class TierValidation(models.AbstractModel):
                 "reviewed_date": fields.Datetime.now(),
             }
         )
-        for review in user_reviews:
-            rec = self.env[review.model].browse(review.res_id)
-            rec._notify_rejected_review()
+
+        reviews_to_nofity = user_reviews.filtered(
+            lambda r: r.definition_id.notify_on_rejected
+        )
+        if reviews_to_nofity:
+            subscribe = "message_subscribe"
+            if hasattr(self, subscribe):
+                getattr(self, subscribe)(
+                    partner_ids=reviews_to_nofity.mapped("reviewer_ids")
+                    .mapped("partner_id")
+                    .ids
+                )
+            for review in reviews_to_nofity:
+                rec = self.env[review.model].browse(review.res_id)
+                rec._notify_rejected_review()
 
     def _notify_requested_review_body(self):
         return _("A review has been requested by %s.") % (self.env.user.name)
@@ -390,42 +468,49 @@ class TierValidation(models.AbstractModel):
         subscribe = "message_subscribe"
         post = "message_post"
         if hasattr(self, post) and hasattr(self, subscribe):
-            for rec in self:
+            for rec in self.sudo():
                 users_to_notify = tier_reviews.filtered(
                     lambda r: r.definition_id.notify_on_create and r.res_id == rec.id
                 ).mapped("reviewer_ids")
                 # Subscribe reviewers and notify
-                getattr(rec, subscribe)(
-                    partner_ids=users_to_notify.mapped("partner_id").ids
-                )
-                getattr(rec, post)(
-                    subtype_xmlid=self._get_requested_notification_subtype(),
-                    body=rec._notify_requested_review_body(),
-                )
+                if len(users_to_notify) > 0:
+                    getattr(rec, subscribe)(
+                        partner_ids=users_to_notify.mapped("partner_id").ids
+                    )
+                    getattr(rec, post)(
+                        subtype_xmlid=self._get_requested_notification_subtype(),
+                        body=rec._notify_requested_review_body(),
+                    )
+
+    def _prepare_tier_review_vals(self, definition, sequence):
+        return {
+            "model": self._name,
+            "res_id": self.id,
+            "definition_id": definition.id,
+            "requested_by": self.env.uid,
+            "sequence": sequence,
+        }
 
     def request_validation(self):
         td_obj = self.env["tier.definition"]
-        tr_obj = created_trs = self.env["tier.review"]
+        tr_obj = self.env["tier.review"]
+        vals_list = []
         for rec in self:
-            if getattr(rec, self._state_field) in self._state_from:
-                if rec.need_validation:
-                    tier_definitions = td_obj.search(
-                        [("model", "=", self._name)], order="sequence desc"
-                    )
-                    sequence = 0
-                    for td in tier_definitions:
-                        if rec.evaluate_tier(td):
-                            sequence += 1
-                            created_trs += tr_obj.create(
-                                {
-                                    "model": self._name,
-                                    "res_id": rec.id,
-                                    "definition_id": td.id,
-                                    "sequence": sequence,
-                                    "requested_by": self.env.uid,
-                                }
-                            )
-                    self._update_counter({"review_created": True})
+            if rec._check_state_from_condition() and rec.need_validation:
+                tier_definitions = td_obj.search(
+                    [
+                        ("model", "=", self._name),
+                        ("company_id", "in", [False] + self.env.company.ids),
+                    ],
+                    order="sequence desc",
+                )
+                sequence = 0
+                for td in tier_definitions:
+                    if rec.evaluate_tier(td):
+                        sequence += 1
+                        vals_list.append(rec._prepare_tier_review_vals(td, sequence))
+                self._update_counter({"review_created": True})
+        created_trs = tr_obj.create(vals_list)
         self._notify_review_requested(created_trs)
         return created_trs
 
@@ -442,16 +527,33 @@ class TierValidation(models.AbstractModel):
 
     def restart_validation(self):
         for rec in self:
+            partners_to_notify_ids = False
             if getattr(rec, self._state_field) in self._state_from:
                 to_update_counter = (
                     rec.mapped("review_ids").filtered(lambda a: a.status == "pending")
                     and True
                     or False
                 )
+                reviews_to_nofity = rec.review_ids.filtered(
+                    lambda r: r.definition_id.notify_on_restarted
+                )
+                if reviews_to_nofity:
+                    partners_to_notify_ids = (
+                        reviews_to_nofity.mapped("reviewer_ids")
+                        .mapped("partner_id")
+                        .ids
+                    )
                 rec.mapped("review_ids").unlink()
                 if to_update_counter:
                     self._update_counter({"review_deleted": True})
-            rec._notify_restarted_review()
+            if partners_to_notify_ids:
+                subscribe = "message_subscribe"
+                reviews_to_nofity = rec.review_ids.filtered(
+                    lambda r: r.definition_id.notify_on_restarted
+                )
+                if hasattr(self, subscribe):
+                    getattr(self, subscribe)(partner_ids=partners_to_notify_ids)
+                rec._notify_restarted_review()
 
     @api.model
     def _update_counter(self, review_counter):
@@ -464,6 +566,27 @@ class TierValidation(models.AbstractModel):
     def unlink(self):
         self.mapped("review_ids").unlink()
         return super().unlink()
+
+    def _add_tier_validation_buttons(self, node, params):
+        str_element = self.env["ir.qweb"]._render(
+            "base_tier_validation.tier_validation_buttons", params
+        )
+        new_node = etree.fromstring(str_element)
+        return new_node
+
+    def _add_tier_validation_label(self, node, params):
+        str_element = self.env["ir.qweb"]._render(
+            "base_tier_validation.tier_validation_label", params
+        )
+        new_node = etree.fromstring(str_element)
+        return new_node
+
+    def _add_tier_validation_reviews(self, node, params):
+        str_element = self.env["ir.qweb"]._render(
+            "base_tier_validation.tier_validation_reviews", params
+        )
+        new_node = etree.fromstring(str_element)
+        return new_node
 
     @api.model
     def get_view(self, view_id=None, view_type="form", **options):
@@ -478,32 +601,27 @@ class TierValidation(models.AbstractModel):
             doc = etree.XML(res["arch"])
             params = {
                 "state_field": self._state_field,
-                "state_from": ",".join("'%s'" % state for state in self._state_from),
+                "state_operator": "not in",
+                "state_value": self._state_from,
             }
             all_models = res["models"].copy()
             for node in doc.xpath(self._tier_validation_buttons_xpath):
                 # By default, after the last button of the header
-                str_element = self.env["ir.qweb"]._render(
-                    "base_tier_validation.tier_validation_buttons", params
-                )
-                new_node = etree.fromstring(str_element)
+                # _add_tier_validation_buttons process
+                new_node = self._add_tier_validation_buttons(node, params)
                 new_arch, new_models = View.postprocess_and_fields(new_node, self._name)
                 new_node = etree.fromstring(new_arch)
                 for new_element in new_node:
                     node.addnext(new_element)
             for node in doc.xpath("/form/sheet"):
-                str_element = self.env["ir.qweb"]._render(
-                    "base_tier_validation.tier_validation_label", params
-                )
-                new_node = etree.fromstring(str_element)
+                # _add_tier_validation_label process
+                new_node = self._add_tier_validation_label(node, params)
                 new_arch, new_models = View.postprocess_and_fields(new_node, self._name)
                 new_node = etree.fromstring(new_arch)
                 for new_element in new_node:
                     node.addprevious(new_element)
-                str_element = self.env["ir.qweb"]._render(
-                    "base_tier_validation.tier_validation_reviews", params
-                )
-                new_node = etree.fromstring(str_element)
+                # _add_tier_validation_reviews process
+                new_node = self._add_tier_validation_reviews(node, params)
                 new_arch, new_models = View.postprocess_and_fields(new_node, self._name)
                 for model in new_models:
                     if model in all_models:
