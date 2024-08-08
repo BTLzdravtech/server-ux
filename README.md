@@ -21,7 +21,7 @@ Available addons
 ----------------
 addon | version | maintainers | summary
 --- | --- | --- | ---
-[announcement](announcement/) | 16.0.1.0.0 |  | Notify internal users about relevant organization stuff
+[announcement](announcement/) | 16.0.1.0.1 |  | Notify internal users about relevant organization stuff
 [announcement_dialog_size](announcement_dialog_size/) | 16.0.1.0.0 |  | Allow set announcement dialogs fullsized by default
 [barcode_action](barcode_action/) | 16.0.1.0.0 |  | Allows to use barcodes as a launcher
 [base_archive_security](base_archive_security/) | 16.0.1.0.1 | [![imlopes](https://github.com/imlopes.png?size=30px)](https://github.com/imlopes) [![ivantodorovich](https://github.com/ivantodorovich.png?size=30px)](https://github.com/ivantodorovich) | Controls who can archive or unarchive records
@@ -41,7 +41,7 @@ addon | version | maintainers | summary
 [base_tier_validation_board](base_tier_validation_board/) | 16.0.1.0.0 | [![JasminSForgeFlow](https://github.com/JasminSForgeFlow.png?size=30px)](https://github.com/JasminSForgeFlow) | Add Tier Review Boards
 [base_tier_validation_definition_server_action](base_tier_validation_definition_server_action/) | 16.0.1.0.0 |  | Server action for Base tier validation
 [base_tier_validation_formula](base_tier_validation_formula/) | 16.0.1.0.2 |  | Formulas for Base tier validation
-[base_tier_validation_forward](base_tier_validation_forward/) | 16.0.1.1.2 | [![kittiu](https://github.com/kittiu.png?size=30px)](https://github.com/kittiu) | Forward option for base tiers
+[base_tier_validation_forward](base_tier_validation_forward/) | 16.0.1.1.3 | [![kittiu](https://github.com/kittiu.png?size=30px)](https://github.com/kittiu) | Forward option for base tiers
 [base_tier_validation_report](base_tier_validation_report/) | 16.0.1.0.1 | [![kittiu](https://github.com/kittiu.png?size=30px)](https://github.com/kittiu) | Reports related to tier validation
 [base_tier_validation_server_action](base_tier_validation_server_action/) | 16.0.1.0.0 | [![kittiu](https://github.com/kittiu.png?size=30px)](https://github.com/kittiu) | Add option to call server action when a tier is validated
 [base_tier_validation_waiting](base_tier_validation_waiting/) | 16.0.1.0.0 |  | Base Tier Validation Extension to add waiting status
