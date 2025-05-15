@@ -25,6 +25,7 @@ addon | version | maintainers | summary
 [barcode_action](barcode_action/) | 17.0.1.0.1 |  | Allows to use barcodes as a launcher
 [base_cancel_confirm](base_cancel_confirm/) | 17.0.1.0.0 | [![kittiu](https://github.com/kittiu.png?size=30px)](https://github.com/kittiu) | Base Cancel Confirm
 [base_export_manager](base_export_manager/) | 17.0.1.0.0 |  | Manage model export profiles
+[base_import_security_group](base_import_security_group/) | 17.0.1.0.0 |  | Group-based permissions for importing CSV files
 [base_menu_visibility_restriction](base_menu_visibility_restriction/) | 17.0.1.0.0 | [![victoralmau](https://github.com/victoralmau.png?size=30px)](https://github.com/victoralmau) | Restrict (with groups) menu visibilty
 [base_optional_quick_create](base_optional_quick_create/) | 17.0.1.0.0 |  | Avoid "quick create" on m2o fields, on a "by model" basis
 [base_revision](base_revision/) | 17.0.1.0.0 |  | Keep track of revised document
