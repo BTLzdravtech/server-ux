@@ -78,9 +78,9 @@ class Base(models.AbstractModel):
             if not field:
                 continue
             field_name = custom_filter.expression
-            res["models"][self._name]['fields'][field_name] = field.get_description(self.env)
+            res["models"][self._name]["fields"][field_name] = field.get_description(self.env)
             # Force these properties to prevent the field from appearing in the UI
-            res["models"][self._name]['fields'][field_name]["selectable"] = False
-            res["models"][self._name]['fields'][field_name]["sortable"] = False
-            res["models"][self._name]['fields'][field_name]["store"] = False
+            res["models"][self._name]["fields"][field_name]["selectable"] = False
+            res["models"][self._name]["fields"][field_name]["sortable"] = False
+            res["models"][self._name]["fields"][field_name]["store"] = False
         return res
