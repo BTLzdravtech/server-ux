@@ -39,7 +39,6 @@ addon | version | maintainers | summary
 [date_range_account](date_range_account/) | 18.0.1.0.0 | <a href='https://github.com/alexis-via'><img src='https://github.com/alexis-via.png' width='32' height='32' style='border-radius:50%;' alt='alexis-via'/></a> | Add Date Range menu entry in Invoicing app
 [developer_menu](developer_menu/) | 18.0.1.0.0 | <a href='https://github.com/bealdav'><img src='https://github.com/bealdav.png' width='32' height='32' style='border-radius:50%;' alt='bealdav'/></a> | Menu Shortcut for developer usage
 [mail_message_destiny_link_template](mail_message_destiny_link_template/) | 18.0.1.0.0 | <a href='https://github.com/Shide'><img src='https://github.com/Shide.png' width='32' height='32' style='border-radius:50%;' alt='Shide'/></a> <a href='https://github.com/rafaelbn'><img src='https://github.com/rafaelbn.png' width='32' height='32' style='border-radius:50%;' alt='rafaelbn'/></a> | Mail template to show destiny records in chatter.
-[mail_suggested_recipient_unchecked](mail_suggested_recipient_unchecked/) | 18.0.1.0.0 | <a href='https://github.com/victoralmau'><img src='https://github.com/victoralmau.png' width='32' height='32' style='border-radius:50%;' alt='victoralmau'/></a> | Mail suggested recipient unchecked
 [multi_step_wizard](multi_step_wizard/) | 18.0.1.0.0 |  | Multi-Steps Wizards
 [sequence_check_digit](sequence_check_digit/) | 18.0.1.0.1 |  | Adds a check digit on sequences
 [sequence_reset_period](sequence_reset_period/) | 18.0.1.0.0 |  | Auto-generate yearly/monthly/weekly/daily sequence period ranges
