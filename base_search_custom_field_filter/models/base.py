@@ -7,7 +7,6 @@
 from lxml import etree
 
 from odoo import api, models
-from odoo.tools.translate import _
 
 
 class Base(models.AbstractModel):
@@ -34,9 +33,7 @@ class Base(models.AbstractModel):
         for custom_filter in custom_filters:
             node = False
             if custom_filter.position_after:
-                node = arch.xpath(
-                    _("//field[@name='%s']") % custom_filter.position_after
-                )
+                node = arch.xpath(f"//field[@name='{custom_filter.position_after}']")
             if not node:
                 node = arch.xpath("//field[last()]")
             if node:
@@ -65,7 +62,7 @@ class Base(models.AbstractModel):
         """Inject fake field definition for having custom filters available."""
         res = super().get_views(views, options)
         if self._name not in res["models"]:
-            res["models"][self._name] = {}
+            res["models"][self._name] = {"fields": {}}
         custom_filters = self.env["ir.ui.custom.field.filter"].search(
             [("model_name", "=", self._name)]
         )

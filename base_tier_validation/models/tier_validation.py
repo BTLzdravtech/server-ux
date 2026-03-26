@@ -352,8 +352,6 @@ class TierValidation(models.AbstractModel):
         for val in vals:
             if val not in exceptions:
                 not_allowed_fields.append(val)
-        if not not_allowed_fields:
-            return []
 
         not_allowed_field_names, allowed_field_names = [], []
         for fld_name, fld_data in self.fields_get(
@@ -875,7 +873,7 @@ class TierValidation(models.AbstractModel):
         return new_node
 
     def _get_tier_validation_readonly_domain(self):
-        return "bool(review_ids)"
+        return "validation_status not in ('no', False)"
 
     @api.model
     def get_view(self, view_id=None, view_type="form", **options):
