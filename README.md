@@ -22,11 +22,16 @@ Available addons
 addon | version | maintainers | summary
 --- | --- | --- | ---
 [base_cancel_confirm](base_cancel_confirm/) | 19.0.1.0.1 | <a href='https://github.com/kittiu'><img src='https://github.com/kittiu.png' width='32' height='32' style='border-radius:50%;' alt='kittiu'/></a> | Base Cancel Confirm
+[base_menu_visibility_restriction](base_menu_visibility_restriction/) | 19.0.1.0.0 | <a href='https://github.com/victoralmau'><img src='https://github.com/victoralmau.png' width='32' height='32' style='border-radius:50%;' alt='victoralmau'/></a> | Restrict (with groups) menu visibilty
 [base_revision](base_revision/) | 19.0.1.0.0 |  | Keep track of revised document
 [base_search_custom_field_filter](base_search_custom_field_filter/) | 19.0.1.0.0 | <a href='https://github.com/pedrobaeza'><img src='https://github.com/pedrobaeza.png' width='32' height='32' style='border-radius:50%;' alt='pedrobaeza'/></a> | Add custom filters for fields via UI
 [base_substate](base_substate/) | 19.0.1.0.1 |  | Base Sub State
 [base_technical_features](base_technical_features/) | 19.0.1.0.0 |  | Access to technical features without activating debug mode
 [date_range](date_range/) | 19.0.1.0.0 | <a href='https://github.com/lmignon'><img src='https://github.com/lmignon.png' width='32' height='32' style='border-radius:50%;' alt='lmignon'/></a> | Manage all kind of date range
+[date_range_account](date_range_account/) | 19.0.1.0.0 | <a href='https://github.com/alexis-via'><img src='https://github.com/alexis-via.png' width='32' height='32' style='border-radius:50%;' alt='alexis-via'/></a> | Add Date Range menu entry in Invoicing app
+[mail_message_destiny_link_template](mail_message_destiny_link_template/) | 19.0.1.0.0 | <a href='https://github.com/Shide'><img src='https://github.com/Shide.png' width='32' height='32' style='border-radius:50%;' alt='Shide'/></a> <a href='https://github.com/rafaelbn'><img src='https://github.com/rafaelbn.png' width='32' height='32' style='border-radius:50%;' alt='rafaelbn'/></a> | Mail template to show destiny records in chatter.
+[sequence_reset_period](sequence_reset_period/) | 19.0.1.0.0 |  | Auto-generate yearly/monthly/weekly/daily sequence period ranges
+[server_action_mass_edit](server_action_mass_edit/) | 19.0.1.0.0 |  | Mass Editing
 
 [//]: # (end addons)
 
