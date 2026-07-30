@@ -1,6 +1,6 @@
 [project]
 name = "odoo-addons-oca-server-ux"
-version = "18.0.20260205.0"
+version = "18.0.20260728.0"
 dependencies = [
     "odoo-addon-announcement==18.0.*",
     "odoo-addon-barcode_action==18.0.*",
@@ -20,6 +20,7 @@ dependencies = [
     "odoo-addon-base_tier_validation_formula==18.0.*",
     "odoo-addon-base_tier_validation_forward==18.0.*",
     "odoo-addon-base_tier_validation_server_action==18.0.*",
+    "odoo-addon-base_user_locale==18.0.*",
     "odoo-addon-base_warn_option==18.0.*",
     "odoo-addon-chained_swapper==18.0.*",
     "odoo-addon-date_range==18.0.*",
