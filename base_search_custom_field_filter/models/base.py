@@ -75,6 +75,7 @@ class Base(models.AbstractModel):
             if not field:
                 continue
             field_name = custom_filter.expression
+            # ------------------------ BTL Code Changes - START ------------------------------ #
             if res["models"][self._name].get("fields"):
                 res["models"][self._name]["fields"][field_name] = field.get_description(
                     self.env
@@ -89,4 +90,5 @@ class Base(models.AbstractModel):
                 res["models"][self._name][field_name]["selectable"] = False
                 res["models"][self._name][field_name]["sortable"] = False
                 res["models"][self._name][field_name]["store"] = False
+            # ---------------------------------- END ----------------------------------------- #
         return res
