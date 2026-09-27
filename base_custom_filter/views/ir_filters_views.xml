@@ -7,6 +7,11 @@
         <field name="model">ir.filters</field>
         <field name="inherit_id" ref="base.ir_filters_view_form" />
         <field name="arch" type="xml">
+            <!-- core hides model_id behind base.group_no_one, but this module's own
+                 Custom Filters menu needs it: it is required and there is no default -->
+            <xpath expr="//group//field[@name='model_id']" position="attributes">
+                <attribute name="groups" />
+            </xpath>
             <field name="is_default" position="after">
                 <field name="type" />
                 <field
