@@ -32,6 +32,13 @@ class Announcement(models.Model):
         comodel_name="ir.attachment",
         string="Attachments",
         help="You can attach the copy of your Letter",
+        # ------------------------ BTL Code Changes - START ------------------------------ #
+        # Without this, Many2many.read runs ir.attachment._search([]) with ACL and
+        # loads every attachment linked to any model before filtering; the per-minute
+        # poll then OOM-kills the worker. Read access is re-checked after the join;
+        # only a domain search on this field skips the ACL pre-filter (core parity).
+        bypass_search_access=True,
+        # ---------------------------------- END ----------------------------------------- #
     )
     announcement_type = fields.Selection(
         selection=[
